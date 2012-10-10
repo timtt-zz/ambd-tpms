@@ -181,6 +181,12 @@ public:
 	static const Property TirePressureRightRear;
 	typedef BasicPropertyType<uint16_t> TirePressureType;
 
+	/**< Tire pressure in kPa */
+	static const Property TireTemperatureLeftFront;
+	static const Property TireTemperatureRightFront;
+	static const Property TireTemperatureLeftRear;
+	static const Property TireTemperatureRightRear;
+	typedef BasicPropertyType<uint16_t> TireTemperature;
 
 
 	static std::list<VehicleProperty::Property> capabilities();
