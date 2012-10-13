@@ -52,6 +52,10 @@ const VehicleProperty::Property VehicleProperty::TirePressureLeftFront = "TirePr
 const VehicleProperty::Property VehicleProperty::TirePressureRightFront = "TirePressureRightFront";
 const VehicleProperty::Property VehicleProperty::TirePressureLeftRear = "TirePressureLeftRear";
 const VehicleProperty::Property VehicleProperty::TirePressureRightRear = "TirePressureRightRear";
+const VehicleProperty::Property VehicleProperty::TireTemperatureLeftFront = "TireTemperatureLeftFront";
+const VehicleProperty::Property VehicleProperty::TireTemperatureRightFront = "TireTemperatureRightFront";
+const VehicleProperty::Property VehicleProperty::TireTemperatureLeftRear = "TireTemperatureLeftRear";
+const VehicleProperty::Property VehicleProperty::TireTemperatureRightRear = "TireTemperatureRightRear";
 
 VehicleProperty::VehicleProperty()
 {
@@ -89,6 +93,10 @@ std::list<VehicleProperty::Property> VehicleProperty::capabilities()
 	mProperties.push_back(TirePressureRightFront);
 	mProperties.push_back(TirePressureLeftRear);
 	mProperties.push_back(TirePressureRightRear);
+	mProperties.push_back(TireTemperatureLeftFront);
+	mProperties.push_back(TireTemperatureRightFront);
+	mProperties.push_back(TireTemperatureLeftRear);
+	mProperties.push_back(TireTemperatureRightRear);
 
 	return mProperties;
 }
@@ -122,6 +130,10 @@ AbstractPropertyType* VehicleProperty::getPropertyTypeForPropertyNameValue(Vehic
 	else if(name == TirePressureRightFront) return new TirePressureType(value);
 	else if(name == TirePressureLeftRear) return new TirePressureType(value);
 	else if(name == TirePressureRightRear) return new TirePressureType(value);
+	else if(name == TireTemperatureLeftFront) return new TireTemperatureType(value);
+	else if(name == TireTemperatureRightFront) return new TireTemperatureType(value);
+	else if(name == TireTemperatureLeftRear) return new TireTemperatureType(value);
+	else if(name == TireTemperatureRightRear) return new TireTemperatureType(value);
 
 	else
 	{
