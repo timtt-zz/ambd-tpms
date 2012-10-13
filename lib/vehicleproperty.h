@@ -25,6 +25,7 @@
 #include <list>
 #include <set>
 #include <sstream>
+#include <map>
 
 #include <abstractpropertytype.h>
 
@@ -56,6 +57,28 @@ enum TurnSignalType
 };
 }
 
+namespace Transmission {
+enum TransmissionPositions
+{
+	Neutral = 0,
+	First,
+	Second,
+	Third,
+	Forth,
+	Fifth,
+	Sixth,
+	Seventh,
+	Eighth,
+	Ninth,
+	Tenth,
+	CVT = 64,
+	Drive = 96,
+	Reverse = 128,
+	Park = 255
+
+};
+}
+
 class VehicleProperty
 {
 
@@ -65,6 +88,7 @@ public:
 	VehicleProperty();
 
 	typedef std::string Property;
+	typedef std::function<AbstractPropertyType* (void)> PropertyTypeFactoryCallback;
 
 	/// Various property types:
 
@@ -83,12 +107,12 @@ public:
 	 * 1 = 1st
 	 * 2 = 2nd
 	 * ...
-	 * 64 = Drive
+	 * 96 = Drive
 	 * 128 = Reverse
 	 * 255 = Park
 	 */
 	static const Property TransmissionShiftPosition;
-	typedef BasicPropertyType<uint16_t> TransmissionShiftPositionType;
+	typedef BasicPropertyType<Transmission::TransmissionPositions> TransmissionShiftPositionType;
 
 	/**< Transmission Gear Position
 	* 0 = Neutral
@@ -96,9 +120,10 @@ public:
 	* 2 = 2nd
 	* ...
 	* 64 = CVT
+	* 128 = Reverse
 	*/
 	static const Property TransmissionGearPosition;
-	typedef BasicPropertyType<uint16_t> TransmissionGearPositionType;
+	typedef BasicPropertyType<Transmission::TransmissionPositions> TransmissionGearPositionType;
 
 	/**< Throttle position 0-100% */
 	static const Property ThrottlePosition;
@@ -181,13 +206,12 @@ public:
 	static const Property TirePressureRightRear;
 	typedef BasicPropertyType<uint16_t> TirePressureType;
 
-	/**< Tire pressure in kPa */
+	/**< Tire temperature in degrees C */
 	static const Property TireTemperatureLeftFront;
 	static const Property TireTemperatureRightFront;
 	static const Property TireTemperatureLeftRear;
 	static const Property TireTemperatureRightRear;
-	typedef BasicPropertyType<uint16_t> TireTemperature;
-
+	typedef BasicPropertyType<uint16_t> TireTemperatureType;
 
 	static std::list<VehicleProperty::Property> capabilities();
 
@@ -196,6 +220,12 @@ public:
 	  * transfered to the caller.
 	  */
 	static AbstractPropertyType* getPropertyTypeForPropertyNameValue(Property name, std::string value);
+
+	static void registerProperty(Property name, PropertyTypeFactoryCallback factory);
+
+private:
+
+	static std::map<Property, PropertyTypeFactoryCallback> registeredPropertyFactoryMap;
     
 };
 

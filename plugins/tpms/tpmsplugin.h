@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2012 Intel Corporation
+Copyright (C) 2012 Tim Trampedach
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -28,24 +28,33 @@ class TpmsPlugin: public AbstractSource
 {
 
 public:
-	TpmsPlugin(AbstractRoutingEngine* re);
+	TpmsPlugin(AbstractRoutingEngine* re, map<string, string> config);
 
-    string uuid();
-	PropertyList supported();
+	string uuid();
+	void getPropertyAsync(AsyncPropertyReply *reply);
+	void setProperty(VehicleProperty::Property, AbstractPropertyType*);
 	void subscribeToPropertyChanges(VehicleProperty::Property property);
 	void unsubscribeToPropertyChanges(VehicleProperty::Property property);
-	
-	void getPropertyAsync(AsyncPropertyReply *reply);
-    void setProperty(VehicleProperty::Property, AbstractPropertyType*);
+	PropertyList supported();
 
 	void propertyChanged(VehicleProperty::Property property, AbstractPropertyType* value, string uuid) {}
 	void supportedChanged(PropertyList) {}
-	
-	
+
+    int readValues();
+
 private:
 	PropertyList mRequests;
-    float leftFrontPressure, rightFrontPressure, leftRearPressure, rightRearPressure;
-    float leftFrontTemperature, rightFrontTemperature, leftRearTemperature, rightRearTemperature;
+    float lfPressure, rfPressure, lrPressure, rrPressure;
+    float lfTemperature, rfTemperature, lrTemperature, rrTemperature;
+    struct libusb_device_handle *mDeviceHandle;
+
+    int findDevice();
+    int detachDevice();
+    int exitClean(int deinit);
+
+    int readUsbSensor(int sid, unsigned char *buf);
+
+    string sensorNumberToString(int snid);
 };
 
 #endif // TPMSPLUGIN_H

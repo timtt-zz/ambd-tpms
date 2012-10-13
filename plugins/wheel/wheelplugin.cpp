@@ -91,7 +91,7 @@ private:
 
 	uint16_t machineGuns;
 	TurnSignals::TurnSignalType turnSignal;
-	uint16_t currentGear;
+	Transmission::TransmissionPositions currentGear;
 	uint16_t oilPSI;
 	uint16_t coolantTemp;
 	uint16_t steeringAngle;
@@ -104,8 +104,8 @@ private:
 };
 
 
-WheelSourcePlugin::WheelSourcePlugin(AbstractRoutingEngine* re)
-:AbstractSource(re)
+WheelSourcePlugin::WheelSourcePlugin(AbstractRoutingEngine* re, map<string, string> config)
+:AbstractSource(re, config)
 {
 	re->setSupported(supported(), this);
 	this->mWheel = new WheelPrivate(this, re);
@@ -118,9 +118,9 @@ WheelSourcePlugin::~WheelSourcePlugin()
 
 
 
-extern "C" AbstractSource * create(AbstractRoutingEngine* routingengine)
+extern "C" AbstractSource * create(AbstractRoutingEngine* routingengine, map<string, string> config)
 {
-	return new WheelSourcePlugin(routingengine);
+	return new WheelSourcePlugin(routingengine, config);
 }
 
 string WheelSourcePlugin::uuid()
@@ -188,7 +188,7 @@ void readCallback(GObject *srcObj, GAsyncResult *res, gpointer userData)
 WheelPrivate::WheelPrivate(WheelSourcePlugin *parent, AbstractRoutingEngine *route)
 :re(route), gis(nullptr), axis(nullptr), button(nullptr),
 oilPSI(10), coolantTemp(100), turnSignal(TurnSignals::Off), throttle(0),
-machineGuns(false), currentGear(0), steeringAngle(0),
+machineGuns(false), currentGear(Transmission::Neutral), steeringAngle(0),
 clutch(false), oldClutch(false), brake(false), oldBrake(false)
 {
 
@@ -211,7 +211,14 @@ clutch(false), oldClutch(false), brake(false), oldBrake(false)
 	
 
 	//FIXME: Support config file with joystick device mapping, button/axis mappings, etc.
-	if ((fd = open("/dev/input/js0", O_RDONLY)) < 0) {
+	std::string jsdev = parent->getConfiguration()["device"];
+
+	DebugOut(0)<<"JSDev: "<<jsdev<<endl;
+
+	if(jsdev == "")
+		jsdev = "/dev/input/js0";
+
+	if ((fd = open(jsdev.c_str(), O_RDONLY)) < 0) {
 		throw std::runtime_error("Could not find a joystick class device!");	//FIXME: Later, don't throw, watch input devices, and jump on to any JS devices that appear
 		return;
 	}
@@ -365,7 +372,7 @@ void WheelPrivate::newButtonValue(char number, bool val)
 			this->changeGear((val ? 128 : 0));
 			break;
 		default:
-			cout << "Got unknown button number: " << (int)number << endl;
+			DebugOut() << "Got unknown button number: " << (int)number << endl;
 			break;
 	}
 }
@@ -460,7 +467,7 @@ void WheelPrivate::changeTurnSignal(TurnSignals::TurnSignalType dir, bool val)
 
 void WheelPrivate::changeGear(int gear)
 {
-	this->currentGear = gear;
+	this->currentGear = (Transmission::TransmissionPositions)gear;
 	VehicleProperty::TransmissionShiftPositionType tempTrans(this->currentGear);
 	VehicleProperty::VehicleSpeedType tempSpeed(this->calcCarSpeed());
 	this->re->updateProperty(VehicleProperty::TransmissionShiftPosition, &tempTrans);

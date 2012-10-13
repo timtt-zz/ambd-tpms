@@ -22,6 +22,8 @@
 
 using namespace std;
 
+std::map<VehicleProperty::Property, VehicleProperty::PropertyTypeFactoryCallback> VehicleProperty::registeredPropertyFactoryMap;
+
 const VehicleProperty::Property VehicleProperty::NoValue = "NoValue";
 const VehicleProperty::Property VehicleProperty::VehicleSpeed = "VehicleSpeed";
 const VehicleProperty::Property VehicleProperty::EngineSpeed = "EngineSpeed";
@@ -50,6 +52,10 @@ const VehicleProperty::Property VehicleProperty::TirePressureLeftFront = "TirePr
 const VehicleProperty::Property VehicleProperty::TirePressureRightFront = "TirePressureRightFront";
 const VehicleProperty::Property VehicleProperty::TirePressureLeftRear = "TirePressureLeftRear";
 const VehicleProperty::Property VehicleProperty::TirePressureRightRear = "TirePressureRightRear";
+const VehicleProperty::Property VehicleProperty::TireTemperatureLeftFront = "TireTemperatureLeftFront";
+const VehicleProperty::Property VehicleProperty::TireTemperatureRightFront = "TireTemperatureRightFront";
+const VehicleProperty::Property VehicleProperty::TireTemperatureLeftRear = "TireTemperatureLeftRear";
+const VehicleProperty::Property VehicleProperty::TireTemperatureRightRear = "TireTemperatureRightRear";
 
 VehicleProperty::VehicleProperty()
 {
@@ -69,7 +75,7 @@ std::list<VehicleProperty::Property> VehicleProperty::capabilities()
 	mProperties.push_back(SteeringWheelAngle);
 	mProperties.push_back(TurnSignal);
 	mProperties.push_back(ClutchStatus);
-	mProperties.push_back((EngineOilPressure));
+	mProperties.push_back(EngineOilPressure);
 	mProperties.push_back(EngineCoolantTemperature);
 	mProperties.push_back(AccelerationX);
 	mProperties.push_back(AccelerationY);
@@ -87,6 +93,10 @@ std::list<VehicleProperty::Property> VehicleProperty::capabilities()
 	mProperties.push_back(TirePressureRightFront);
 	mProperties.push_back(TirePressureLeftRear);
 	mProperties.push_back(TirePressureRightRear);
+	mProperties.push_back(TireTemperatureLeftFront);
+	mProperties.push_back(TireTemperatureRightFront);
+	mProperties.push_back(TireTemperatureLeftRear);
+	mProperties.push_back(TireTemperatureRightRear);
 
 	return mProperties;
 }
@@ -120,7 +130,34 @@ AbstractPropertyType* VehicleProperty::getPropertyTypeForPropertyNameValue(Vehic
 	else if(name == TirePressureRightFront) return new TirePressureType(value);
 	else if(name == TirePressureLeftRear) return new TirePressureType(value);
 	else if(name == TirePressureRightRear) return new TirePressureType(value);
+	else if(name == TireTemperatureLeftFront) return new TireTemperatureType(value);
+	else if(name == TireTemperatureRightFront) return new TireTemperatureType(value);
+	else if(name == TireTemperatureLeftRear) return new TireTemperatureType(value);
+	else if(name == TireTemperatureRightRear) return new TireTemperatureType(value);
 
+	else
+	{
+		if(registeredPropertyFactoryMap.count(name) > 0)
+		{
+			VehicleProperty::PropertyTypeFactoryCallback cb = registeredPropertyFactoryMap[name];
+			if ( cb != NULL )
+			{
+				AbstractPropertyType* type = cb();
+				if(type == NULL)
+					throw std::runtime_error("Cannot return NULL in a PropertyTypeFactory");
+
+				type->fromString(value);
+
+				return type;
+			}
+
+		}
+	}
 
 	return nullptr;
+}
+
+void VehicleProperty::registerProperty(VehicleProperty::Property name, VehicleProperty::PropertyTypeFactoryCallback factory)
+{
+	registeredPropertyFactoryMap[name] = factory;
 }
